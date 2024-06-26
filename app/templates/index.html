@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Reminder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <style>
+        .notification {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-button {
+            position: absolute;
+            top: 50px; /* Sesuaikan dengan kebutuhan */
+            left: 60px; /* Sesuaikan dengan kebutuhan */
+            z-index: 999; /* Menentukan urutan tampilan di atas konten */
+            color: #007bff; /* Warna teks default */
+            text-decoration: none; /* Hilangkan garis bawah */
+        }
+        .back-button:hover {
+            color: #0056b3; /* Warna teks saat di-hover */
+        }
+        .main-content {
+            margin-top: 50px; /* Menambahkan margin atas untuk konten utama */
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <a href="{{ url_for('welcome') }}" class="back-button">&lt; Back</a>
+        <div class="container main-content">
+            <h1 class="title">Study Reminder</h1>
+            <form action="{{ url_for('add_schedule') }}" method="post">
+                <div class="field">
+                    <label class="label">Subject</label>
+                    <div class="control">
+                        <input class="input" type="text" name="subject" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Date</label>
+                    <div class="control">
+                        <input class="input" type="date" name="date" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Time</label>
+                    <div class="control">
+                        <input class="input" type="time" name="time" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-link" type="submit">Add Schedule</button>
+                    </div>
+                </div>
+            </form>
+            <hr>
+            <h2 class="subtitle">Schedules</h2>
+            <table class="table is-fullwidth">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Last Used</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in schedules %}
+                    <tr>
+                        <td>{{ schedule.subject }}</td>
+                        <td>{{ schedule.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ schedule.time.strftime('%H:%M') }}</td>
+                        <td>{{ schedule.last_used.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</body>
+</html>
