@@ -1,35 +1,39 @@
-# fuzzy_logic.py
-
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
-def get_reminder_intensity(time_unused_days):
-    # Define fuzzy variables
-    time_unused = ctrl.Antecedent(np.arange(0, 101, 1), 'time_unused')
-    reminder_intensity = ctrl.Consequent(np.arange(0, 101, 1), 'reminder_intensity')
+# Definisikan variabel input
+time_since_last_use = ctrl.Antecedent(np.arange(0, 11, 1), 'time_since_last_use')
+reminder_ignored = ctrl.Antecedent(np.arange(0, 11, 1), 'reminder_ignored')
 
-    # Define fuzzy membership functions
-    time_unused['sebentar'] = fuzz.trimf(time_unused.universe, [0, 0, 30])
-    time_unused['cukup lama'] = fuzz.trimf(time_unused.universe, [20, 50, 80])
-    time_unused['lama sekali'] = fuzz.trimf(time_unused.universe, [60, 100, 100])
+# Definisikan variabel output
+reminder_urgency = ctrl.Consequent(np.arange(0, 11, 1), 'reminder_urgency')
 
-    reminder_intensity['rendah'] = fuzz.trimf(reminder_intensity.universe, [0, 0, 30])
-    reminder_intensity['sedang'] = fuzz.trimf(reminder_intensity.universe, [20, 50, 80])
-    reminder_intensity['tinggi'] = fuzz.trimf(reminder_intensity.universe, [60, 100, 100])
+# Definisikan fungsi keanggotaan untuk setiap variabel input
+time_since_last_use['low'] = fuzz.trimf(time_since_last_use.universe, [0, 0, 5])
+time_since_last_use['medium'] = fuzz.trimf(time_since_last_use.universe, [0, 5, 10])
+time_since_last_use['high'] = fuzz.trimf(time_since_last_use.universe, [5, 10, 10])
 
-    # Define fuzzy rules
-    rule1 = ctrl.Rule(time_unused['sebentar'], reminder_intensity['rendah'])
-    rule2 = ctrl.Rule(time_unused['cukup lama'], reminder_intensity['sedang'])
-    rule3 = ctrl.Rule(time_unused['lama sekali'], reminder_intensity['tinggi'])
+reminder_ignored['low'] = fuzz.trimf(reminder_ignored.universe, [0, 0, 5])
+reminder_ignored['medium'] = fuzz.trimf(reminder_ignored.universe, [0, 5, 10])
+reminder_ignored['high'] = fuzz.trimf(reminder_ignored.universe, [5, 10, 10])
 
-    # Create control system
-    reminder_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
-    reminder = ctrl.ControlSystemSimulation(reminder_ctrl)
+# Definisikan fungsi keanggotaan untuk variabel output
+reminder_urgency['low'] = fuzz.trimf(reminder_urgency.universe, [0, 0, 5])
+reminder_urgency['medium'] = fuzz.trimf(reminder_urgency.universe, [0, 5, 10])
+reminder_urgency['high'] = fuzz.trimf(reminder_urgency.universe, [5, 10, 10])
 
-    # Input the value
-    reminder.input['time_unused'] = time_unused_days
+# Definisikan aturan fuzzy
+rule1 = ctrl.Rule(time_since_last_use['high'] & reminder_ignored['high'], reminder_urgency['high'])
+rule2 = ctrl.Rule(time_since_last_use['medium'] & reminder_ignored['medium'], reminder_urgency['medium'])
+rule3 = ctrl.Rule(time_since_last_use['low'] & reminder_ignored['low'], reminder_urgency['low'])
 
-    # Compute the result
-    reminder.compute()
-    return reminder.output['reminder_intensity']
+# Buat sistem kontrol
+reminder_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
+reminder_sim = ctrl.ControlSystemSimulation(reminder_ctrl)
+
+def calculate_reminder_urgency(last_use_hours, ignored_times):
+    reminder_sim.input['time_since_last_use'] = last_use_hours
+    reminder_sim.input['reminder_ignored'] = ignored_times
+    reminder_sim.compute()
+    return reminder_sim.output['reminder_urgency']
